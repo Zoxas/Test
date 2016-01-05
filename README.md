@@ -1,3 +1,3 @@
 # self test
-#learning how to use github
-#By Zoxas
+learning how to use github
+By Zoxas
