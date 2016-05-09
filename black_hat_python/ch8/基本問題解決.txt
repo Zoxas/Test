@@ -1,0 +1,15 @@
+1. 事先嘗試與安裝
+pip install pyHook-1.5.1-cp27-none-win_amd64.whl
+
+Solution was to copy the DLL files:
+pywintypes27.dll
+pythoncom27.dll
+sitting in:
+C:\Anaconda\Lib\site-packages\win32
+to
+C:\Anaconda\Lib\site-packages\win32\lib
+
+
+2.setup.py 為 py2exe 需要的東西
+指令為 pyhton  setup.py  py2exe
+dist 中的 exe檔案就可以點開來玩了

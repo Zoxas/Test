@@ -1,0 +1,27 @@
+1、-bash: /usr/bin/yum: /usr/bin/ Python : bad interpreter: No such file or directory
+
+首先要確保文件有可執行權限 #sh>chmod a+x filename
+這個錯誤是因為python的版本不匹配，只要在/usr/bin/yum中把第一行的#！/usr/bin/python改成#！/usr/bin/python2.4就可以啦~
+當然，我是指路徑對的情況下，畢竟通常linux下的python默認版本都是2.4，當然，例外不算。
+
+ 
+
+2、-bash: /usr/bin/yum: /usr/bin/python^M: bad interpreter: No such file or directory
+
+有些時候，錯誤是這樣顯示的，那就不是python的版本問題了，屬於編碼問題。
+因為windows下的換行默認的是“換行+回車”，也就是“\n\r”,
+而linux下的換行默認的是“換行”，也就是“\n”，所以在windows下對yum進行修改的時候後面的“\r”linux是不認識的，會被默認成路徑的一部分，
+顯示出來就是“^M”.
+
+所以這個問題的修改辦法就是改變文件的編碼
+
+1）在windows下轉換： 利用一些編輯器如UltraEdit或EditPlus等工具先將腳本編碼轉換，再放到Linux中執行。
+轉換方式如下（UltraEdit）：File-->Conversions-->DOS->UNIX即可。 2）
+也可在Linux中轉換： 首先要確保文件有可執行權限 #sh>chmod a+x filename 然後修改文件格式 #sh>vi filename 
+
+ 
+
+利用如下命令查看文件格式 :set ff或:set fileformat 可以看到如下信息 fileformat=dos或fileformat=unix 
+利用如下命令修改文件格式 :set ff=unix或:set fileformat=unix 
+
+:wq (存盤退出) 最後再執行文件 #sh>./filename
