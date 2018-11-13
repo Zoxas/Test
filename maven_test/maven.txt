@@ -1,0 +1,14 @@
+1. 到https://repo.maven.apache.org/
+2. 右鍵內容>憑證>詳細資料>把金鑰用Base 64 X.509 (.CER)的方式存到你的電腦裡面
+3. 開啟command line, 生成key sotre
+   keytool -import -file C:\temp\mavenCert.cer -keystore C:\temp\mavenKeystore
+4.之後就可以增加參考此keysotre的paramter了
+
+Now you can run the command again with the parameter
+-Djavax.net.ssl.trustStore=C:\temp\mavenKeystore
+Under linux use absolute path
+-Djavax.net.ssl.trustStore=/tmp/mavenKeystore
+
+
+例如我在執行mvn clean install的時候我就直接執行
+mvn clean install -Djavax.net.ssl.trustStore=C:\temp\mavenKeystore
