@@ -1,12 +1,12 @@
-需要
+*Need env*
 Apache Spark 2.1.1 compiled for Scala 2.11
 Jupyter Notebook
 Python 3.5+
 
-安裝
+*Install*
 pip install spylon-kernel
 or
 conda install -c conda-forge spylon-kernel
 
-將它用作Scala Kernel
+acticate or install Scala Kernel
 python -m spylon_kernel install
