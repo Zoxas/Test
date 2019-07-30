@@ -1,0 +1,44 @@
+flink run on yarn cluster
+(先閱讀 kafka 建置筆記 和 hadoop的相關設定檔)
+============================================================
+設定環境變數 feng.bashrc  -> 每次連線就source feng.bashrc
+============================================================
+# Set HADOOP_HOME
+export HADOOP_HOME=/home/hpds/feng/hadoop-2.7.2
+
+# Add Hadoop bin and sbin directory to PATH
+export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+export HADOOP_CLASSPATH=$JAVA_HOME/lib/tools.jar
+
+============================================================
+增加yarn-site.xml 的設定
+============================================================
+<property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+    <description>Whether virtual memory limits will be enforced for containers</description>
+</property>
+ 
+<property>
+    <name>yarn.nodemanager.vmem-pmem-ratio</name>
+    <value>4</value>
+   <description>Ratio between virtual memory to physical memory when setting memory limits for containers</description>
+</property>
+
+============================================================
+執行 flink
+============================================================
+bin/yarn-session.sh -n (number of task manager)  -jm (jobManager Memory) -tm (taskManager Memory) -s (task slot per task manager)
+bin/yarn-session.sh -n 2 -jm 1024 -tm 4096 -s 4
+
+
+之後根據我們yarn的設定檔案 可以到上面看
+http://10.2.0.6:20112/
+
+然後web ui 可以透過它的AppMaster 來查看
+Tracking URL:	ApplicationMaster
+http://10.2.0.6:20112/proxy/application_1478445619373_0002/#/overview
+
+
+flink training
+http://dataartisans.github.io/flink-training/index.html

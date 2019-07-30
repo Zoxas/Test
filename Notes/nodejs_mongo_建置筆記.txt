@@ -1,0 +1,336 @@
+Linux平台安裝MongoDB
+========================================================================
+1. MongoDB提供了linux平台上32位和64位的安裝包，你可以在官網下載安裝包。
+下載地址：http://www.mongodb.org/downloads
+
+下載完安裝包，並解壓tgz（以下演示的是64位Linux上的安裝)
+tar -zxvf mongodb-linux-x86_64-3.0.6.tgz #解壓
+
+MongoDB的可執行文件位於bin目錄下，所以可以將其添加到PATH路徑中：
+export MONGO_HOME=/usr/local/mongodb
+export PATH=$MONGO_HOME/bin:$PATH
+=======================================================================
+2. 在該目錄下創建子目錄:
+mkdir log data
+
+
+3. 啟動mongogdb服務。
+./bin/mongod -port 27017 --dbpath data/ --logpath log/mongodb.log
+ (可以寫一個 start.sh 將上面那行加進去)
+
+
+4現在就可以通過命令行鏈接數據庫：./bin/mongo 
+MongoDB shell version: 2.4.10
+connecting to: test
+代表連線成功。MongoDB的安裝完成
+
+
+"connecting to: test"。這裡的"test"就是MongoDB預設的資料庫名。
+但其實"test"只是一個空名，除非你放入資料，否則MongoDB並不會真正建立這個資料庫。
+
+你可以直接用這個資料庫，也可以另外命名一個，指令如下：
+use news
+
+這裡的"news"是我取的資料庫名。輸入後會出現以下訊息：
+switched to db news
+
+MongoDB 删除数据库的语法格式如下：
+db.dropDatabase()
+
+=======================================================================
+用robomongo鏈接數據庫
+
+下載robomongo ubuntu版本
+https://robomongo.org/download
+
+
+$robomongo就可以打開客戶端。
+
+建立新連接，只需要添加host和port即可。
+
+note：我第一次安裝成功後鏈接也成功，但是看不到任何數據。
+解決辦法：重新使用root權限安裝即可。
+========================================================================
+MongoDB 開啓用戶認證並使用 PyMongo 連接
+
+正式開始教學。首先要先安裝pymongo:
+pip install pymongo
+
+如何驗證有沒有裝成功？打開python互動式介面，輸入：
+import pymongo
+
+沒有出錯就代表成功啦！
+========================================================================
+登錄 MongoDB shell 並切換到 admin 庫
+
+mongo
+use admin
+
+創建管理員用戶
+
+db.createUser(
+{
+user: "yourusername",
+pwd: "password",
+roles: [ { role: "userAdminAnyDatabase", db: "admin" } ]
+}
+)
+
+
+登錄並進行用戶認證
+
+mongo
+use admin
+db.auth("yourusername", "password")
+
+也可以這樣登錄
+
+mongo --port 27017 -u yourusername -p password --authenticationDatabase admin
+
+認證成功後，創建普通用戶，使用此用戶登陸後即可對指定數據庫進行操作
+例子：
+
+db.createUser(
+{
+user: "123",
+pwd: "123123",
+roles: [ 
+{ role: "readWrite", db: "firstdb" }, # firstdb 庫給予讀寫權限
+{ role: "read", db: "products" }, # products 庫給予讀權限 
+]
+}
+)
+
+修改指定用戶的密碼
+
+use admin
+db.changeUserPassword("username", "newpassword")
+
+刪除指定用戶
+
+use admin
+db.db.system.users.remove({user:"username"})
+
+========================================================================
+使用 PyMongo 連接使用用戶認證的 mongodb 並 進行灌資料
+
+import pymongo
+
+url = "mongodb://hpds:hpds@127.0.0.1"
+client = pymongo.MongoClient(url)
+
+db = client['news'] // db name = news
+
+collect = db['testproject'] //collection name = testproject
+
+/* testdata -> 隨便創個 dict 隨便加
+post_id = collect.insert_one(testdata).inserted_id
+print post_id
+
+collect.delete_one({"text":"hello user"})
+*/
+
+
+//add data
+with open('test.txt','r') as f:
+    while True:
+        line = f.readline()
+        if not line:
+            break;
+        print line
+        element = line.split(",")
+        record = {
+        "Group": element[0],
+        "IP": element[1],
+        "Lat": float(element[2]),
+        "lng": float(element[3]),
+        "Location":element[4],
+        "SchoolName":element[5].strip("\n")
+        }
+        collect.insert(record)
+========================================================================
+NODEJS的部分
+
+express testproject --hogan -c less
+
+
+要檢查這兩項是否安裝成功，可以打開"/testproject/package.json"：
+	{
+	  "name": "testproject",
+	  "version": "0.0.0",
+	  "private": true,
+	  "scripts": {
+	    "start": "node ./bin/www" -> 改成 sudo nodemon .bin/wwww
+	  },
+	  "dependencies": {
+	    "express": "~4.8.6",
+	    "body-parser": "~1.6.6",
+	    "cookie-parser": "~1.3.2",
+	    "morgan": "~1.2.3",
+	    "serve-favicon": "~2.0.1",
+	    "debug": "~1.0.4",
+	    "hjs": "~0.0.6",
+	    "less-middleware": "1.0.x"
+	  }
+	}
+
+為了讓Node.js能夠連結MongoDB，我們要在package.json裡加入一些模組。
+請在"dependencies"段的結尾加入：
+
+	"mongodb": "*",
+	"monk": "*"
+
+接著在這個目錄打開命令視窗，執行以下指令：
+npm install
+
+========================================================================
+
+模組安裝成功後，要讓我們的專案使用，打開"app.js"，在第一部分的"var"段結尾加入：
+
+// Connect to MongoDB
+var mongo = require('mongodb');
+var monk = require('monk');
+var db = monk('localhost:27017/news');
+
+接下來我們要讓路由程式"router"可以使用資料庫，在app.js裡找到：
+	app.use('/', routes);
+	app.use('/users', users);
+
+在這兩行前面加入：
+	// Allow router to access db
+	app.use(function(req,res,next){
+	    req.db = db;
+	    next();
+	});
+這段程式的意思將我們剛剛用"monk"連結的"db"賦值給"req.db"，
+這樣在"router"裡面也能通過"req.db"來操作資料庫。
+========================================================================
+Nodejs 測試 從mongodb撈資料
+ 
+routes/index.js
+
+var express = require('express');
+var router = express.Router();
+var util = require('util')
+
+/* GET home page. */
+router.get('/', function(req, res, next) {
+  res.render('index', { title: 'new title' });
+});
+
+
+router.get('/data',function(req ,res){
+    var db = req.db;
+    var collection =db.get('testproject');
+    var lst = [];
+    var count = 0 ;
+    var str = "";
+
+    collection.find({},{},function(err,docs){
+        
+        var objkey = Object.keys(docs);
+
+        objkey.forEach(function(objid){
+            var items = Object.keys(docs[objid]);
+            //console.log(items)
+            //lst.push(items)
+            items.forEach(function(itemkey){
+                var item_value = docs[objid][itemkey]
+                //console.log(objid + ' : '+ itemkey+ ' = '+item_value +"!!!!" + count)
+                //count = count + 1
+                if(objid == count && itemkey != "_id"){
+                    str = str + itemkey + ":" + item_value + '  ';
+                }
+                console.log(str)
+
+            })
+            count = count + 1 ;
+            lst.push(str)
+            str = ""
+        })
+
+        res.render('data',{
+            'data':lst
+	    });
+    });
+});
+
+
+router.get('/NCKU',function(req , res){
+    var db = req.db;
+    var collection =db.get('testproject');
+    var lst = [];
+    var str = "";
+
+    var query_NCKU = collection.find(
+        {
+            $and:
+            [
+                {"SchoolName": {$ne : "CCU"}} , 
+                {"SchoolName": {$ne : "other"}},
+                {"SchoolName": {$ne : "NCU"}}
+            ] 
+        },
+        {
+            "sort": "IP"
+
+        },function(err,docs){
+        //console.log(docs);
+        for(doc_index in docs){
+            console.log("========="+doc_index+"===========")
+            for(item_key in docs[doc_index]){
+                if(item_key != "_id"){
+                    data = util.format('%s : %s  ', item_key ,docs[doc_index][item_key]);
+                    console.log(data)
+                    str = str + data
+                }
+            }
+            lst.push(str)
+            str = ""
+        }
+    
+
+        res.render('data',{
+            'data':lst
+        });
+    })
+
+
+
+})
+
+
+module.exports = router;
+========================================================================
+views 裡面 新增 data.hjs
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+
+    <h1>mongo data</h1>
+
+    <ul> 
+	{{#data}} 
+	<li>{{.}}</li>
+	{{/data}}
+    </ul>
+
+  </body>
+</html>
+========================================================================
+ 補充：
+ 
+ 教程   http://www.runoob.com/mongodb/mongodb-tutorial.html
+ 		https://blog.gtwang.org/programming/getting-started-with-mongodb-shell-1/
+ 
+ 操作符  http://mongodbcanred.blogspot.tw/2015/01/6mongodb2.html
+ 		 https://docs.mongodb.com/manual/reference/operator/query/
+
+ Queries  https://mongodb.github.io/node-mongodb-native/markdown-docs/queries.html
+ 		  https://docs.mongodb.com/getting-started/node/query/
+

@@ -1,0 +1,9 @@
+20.11.2016 15:16:22 INFO  [udp-kafka-bridge-akka.actor.default-dispatcher-2] k.u.VerifiableProperties - Verifying properties
+20.11.2016 15:16:22 INFO  [udp-kafka-bridge-akka.actor.default-dispatcher-2] k.u.VerifiableProperties - Property metadata.broker.list is overridden to localhost:9092
+20.11.2016 15:16:22 INFO  [udp-kafka-bridge-akka.actor.default-dispatcher-2] k.u.VerifiableProperties - Property compression.codec is overridden to 1
+20.11.2016 15:16:22 INFO  [udp-kafka-bridge-akka.actor.default-dispatcher-2] k.u.VerifiableProperties - Property serializer.class is overridden to kafka.serializer.StringEncoder
+20.11.2016 15:16:22 INFO  [udp-kafka-bridge-akka.actor.default-dispatcher-2] k.u.VerifiableProperties - Property producer.type is overridden to async
+20.11.2016 15:17:57 INFO  [ProducerSendThread-] k.c.ClientUtils$ - Fetching metadata from broker id:0,host:localhost,port:9092 with correlation id 0 for 1 topic(s) Set(udp_data)
+20.11.2016 15:17:57 INFO  [ProducerSendThread-] k.p.SyncProducer - Connected to localhost:9092 for producing
+20.11.2016 15:17:57 INFO  [ProducerSendThread-] k.p.SyncProducer - Disconnecting from localhost:9092
+20.11.2016 15:17:57 INFO  [ProducerSendThread-] k.p.SyncProducer - Connected to b06:9092 for producing

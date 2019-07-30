@@ -1,0 +1,169 @@
+﻿****************************************************************
+使用tmux：
+****************************************************************
+tmux 預設的操作要加上 Ctrl-b 功能鍵
+
+Ctrl-b + %        將目前的視窗分離到兩個區塊；
+Ctrl-b + 左或右   切換區塊；
+
+Ctrl-b + d        卸載目前的 client；
+tmux ls # tmux list-sessions	列出所有 session
+tmux attach       重新回到上個工作視窗
+tmux attach -t session-id	視窗取回 by session name
+
+****************************************************************
+安裝scala：
+****************************************************************
+下載	
+wget  http://www.scala-lang.org/files/archive/scala-2.10.6.tgz
+
+解壓 	
+tar -zxf scala-2.10.6.tgz
+
+設置  bashrc
+export SCALA_HOME=/home/hpds/scala-2.10.6	
+export PATH=$PATH:$SCALA_HOME/bin
+
+****************************************************************
+安裝zookeeper：
+****************************************************************
+下載
+wget  http://apache.stu.edu.tw/zookeeper/zookeeper-3.4.9/zookeeper-3.4.9.tar.gz
+ 
+解壓
+tar -zxf zookeeper-3.4.9.tar.gz
+
+進入zookeeper 資料夾後
+mkdir data
+mkdir   datalog
+
+設定檔案
+mv conf/zoo_sample.cfg  conf/zoo.cfg
+
+修改 zoo.cfg 
+dataDir=/home/hpds/feng/zookeeper-3.4.9/data
+
+server.1=b06:2888:3888
+server.2=b07:2888:3888
+dataLogDir=/home/hpds/feng/zookeeper-3.4.9/datalog
+
+在data資料夾內創一文件 myid
+b06的myid 內容為1
+b07的myid 內容為2
+
+啟動(兼具報錯mode)
+bin/zkServer.sh start-foreground
+
+通過命令：echo stat|nc 127.0.0.1 2181 來查看哪個節點被選擇作?follower或者leader
+使用	echo ruok|nc 127.0.0.1 2181 測試是否啟動了該Server，若回复imok表示已經啟動。
+http://fanli7.net/a/bianchengyuyan/C__/20160725/570137.html
+
+****************************************************************
+安裝kafka：
+****************************************************************
+下載
+wget http://www-eu.apache.org/dist/kafka/0.10.0.1/kafka_2.10-0.10.0.1.tgz
+
+解壓
+tar -zxf kafka_2.10-0.10.0.1.tgz 
+
+設定檔案 config/zookeeper.properties
+(此為用kafka 叫起 zookeeper 叢集的設定 非必要)  (zookeeper自己手動啟動就好)
+
+dataDir=/home/hpds/feng/zookeeper-3.4.9/data
+
+
+設定檔案 config/server.properties
+改broker.id  --> 每個都要不一樣
+port=9092
+
+log.dirs=../logs
+
+zookeeper.connect=b06:2181,b07:2181
+
+****************************************************************
+測試
+****************************************************************
+各台 bin/zkServer.sh start-foreground
+各台 bin/kafka-server-start.sh config/server.properties 
+
+創建 Topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+
+列出有哪些Topic
+bin/kafka-topics.sh --list --zookeeper localhost:2181
+
+列出Topic 狀況
+bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic test
+
+第一行給出了分區的匯總信息。每個分區行給出分區信息。
+"leader"節點是1
+"replicas"信息，在節點1,2,0上，不管node死活，只是列出信息而已
+"isr"工作中的複制節點的集合.也就是活的節點的集合.
+
+
+刪除Topic 
+---------------------------------------------------------------------
+登入 zookeeper 客戶端
+bin/zkCli.sh -server localhost:2181
+
+找到topic所在的目錄：
+
+
+ls /brokers/topics
+
+
+找到要刪除的topic，執行命令：
+
+
+rmr /brokers/topics/【topic name】
+即可，
+
+此時topic被徹底刪除
+另外被標記為marked for deletion的topic
+你可以在zookeeper客戶端中通過命令獲得：
+
+
+ls /admin/delete_topics/【topic name】
+
+
+如果你刪除了此處的topic，那麼marked for deletion標記消失
+
+
+zookeeper的config中也有有關topic的信息：
+
+ 
+ls /config/topics/【topic name】
+---------------------------------------------------------------------
+
+發送消息
+bin/kafka-console-producer.sh --broker-list  localhost:9092 --topic test
+
+消費消息
+bin/kafka-console-consumer.sh --zookeeper localhost:2181 --consumer.config config/consumer.properties   --topic test --from-beginning --delete-consumer-offsets
+
+查看 consumer group  中 Topic partition 是誰擁有的
+bin/kafka-consumer-groups.sh --zookeeper localhost:2181 --group group1 --describe
+
+查看 consumer group 的 offset
+bin/kafka-run-class.sh kafka.tools.ConsumerOffsetChecker --group group1 --zookeeper localhost:2181
+
+更新 topic 的 offset
+bin/kafka-run-class.sh kafka.tools.UpdateOffsetsInZK earliest/latest config/consumer.properties udp_data
+
+JAR 檔
+consumer
+java -cp kafka_test-1.0-SNAPSHOT.jar kafka.examples.ConsumerExample localhost:2181 group1 test_topic  3  0
+
+Producer
+java -cp kafka_test-1.0-SNAPSHOT.jar kafka.examples.ProducerExample 10 test_topic localhost:9092
+
+
+
+
+
+
+
+
+
+

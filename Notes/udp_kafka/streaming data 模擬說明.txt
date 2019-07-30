@@ -1,0 +1,47 @@
+=================================================
+streaming data 模擬
+=================================================
+資料 -- udp --> kafka
+
+先創建測試用 topic = udp_data
+
+bin/kafka-topics.sh \
+--create \
+--zookeeper localhost:2181 \
+--replication-factor 1 \
+--partitions 1 \
+--topic udp_data
+
+*************************************************
+kafka 接收udp 資料
+*************************************************
+java \
+-Dbind.host=0.0.0.0 \
+-Dbind.port=19820 \
+-Dtopic=udp_data \
+-Dkafka.metadata.broker.list=localhost:9092 \
+-Dkafka.serializer.class=kafka.serializer.StringEncoder \
+-Dkafka.compression.codec=1 \
+-Dkafka.producer.type=async \
+-jar udp-kafka-bridge-assembly-0.1.jar
+
+
+*************************************************
+發送 udp 資料
+*************************************************
+到utee 裡面 make 
+out 裡面的檔案就是了
+
+cat part-r-00000 | ./utee 127.0.0.1 19820                              
+
+(part-r-00000 僅為測試資料)
+
+
+*************************************************
+消費消息 確認情況
+*************************************************
+bin/kafka-console-consumer.sh \
+--zookeeper localhost:2181 \
+--consumer.config config/consumer.properties \
+--topic udp_data \
+--from-beginning --delete-consumer-offsets
